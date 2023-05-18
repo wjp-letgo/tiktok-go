@@ -6,10 +6,10 @@ import (
 
 //@json
 type GetAccessTokenResult struct {
-	Code      int                `json:"code"`
-	Message   string             `json:"message"`
-	Data      GetAccessTokenData `json:"data"`
-	RequestId string             `json:"request_id"`
+	Code    int                `json:"code"`
+	Message string             `json:"message"`
+	Data    GetAccessTokenData `json:"data"`
+	//RequestId string `json:"request_id"`
 }
 
 //@json
@@ -20,7 +20,8 @@ type GetAccessTokenData struct {
 	RefreshTokenExpireIn int    `json:"refresh_token_expire_in"`
 	OpenId               string `json:"open_id"`
 	SellerName           string `json:"seller_name"`
-	SellerBaseRegion     string `json:"seller_base_region"`
+	//SellerBaseRegion     string `json:"seller_base_region"`
+	RequestId string `json:"request_id"`
 }
 
 func (getaccesstokenresult *GetAccessTokenResult) String() string {

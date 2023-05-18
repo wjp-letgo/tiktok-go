@@ -24,7 +24,7 @@ func (a *OAuth) GetAccessToken(code string) *oauthentity.GetAccessTokenResult {
 		"auth_code":  code,
 		"grant_type": "authorized_code",
 	}
-	a.Config.HttpS("/api/token/getAccessToken", params, &result)
+	a.Config.HttpS("/api/v2/token/get", params, &result)
 	return &result
 }
 
@@ -35,7 +35,7 @@ func (a *OAuth) RefreshToken(refreshToken string) *oauthentity.GetAccessTokenRes
 		"refresh_token": refreshToken,
 		"grant_type":    "refresh_token",
 	}
-	err := a.Config.HttpS("/api/token/refreshToken", params, &result)
+	err := a.Config.HttpS("/api/v2/token/refresh", params, &result)
 	if err != nil {
 		result.Code = -1
 		result.Message = err.Error()
