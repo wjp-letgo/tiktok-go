@@ -1,11 +1,11 @@
 package tiktokgo
 
 import (
-	tiktokConfig "github.com/wjpxxx/tiktokgo/config"
-	"github.com/wjpxxx/tiktokgo/oauth"
-	oauthentity "github.com/wjpxxx/tiktokgo/oauth/entity"
-	"github.com/wjpxxx/tiktokgo/shop"
-	shopentity "github.com/wjpxxx/tiktokgo/shop/entity"
+	tiktokConfig "github.com/wjp-letgo/tiktok-go/config"
+	"github.com/wjp-letgo/tiktok-go/oauth"
+	oauthentity "github.com/wjp-letgo/tiktok-go/oauth/entity"
+	"github.com/wjp-letgo/tiktok-go/shop"
+	shopentity "github.com/wjp-letgo/tiktok-go/shop/entity"
 )
 
 //TikToker
@@ -30,4 +30,25 @@ func NewApi(cfg *tiktokConfig.Config) TikToker {
 		oauth.OAuth{Config: cfg},
 		shop.Shop{Config: cfg},
 	}
+}
+
+//tiktokList 接口列表
+var tiktokList map[string]TikToker
+
+//init
+func init() {
+	tiktokList = make(map[string]TikToker)
+}
+
+//Register
+func Register(name string, cfg *tiktokConfig.Config) {
+	tiktokList[name] = &TikToker{
+		oauth.OAuth{Config: cfg},
+		shop.Shop{Config: cfg},
+	}
+}
+
+//GetApi
+func GetApi(name string) TikToker {
+	return tiktokList[name]
 }

@@ -1,9 +1,9 @@
 package shop
 
 import (
-	"github.com/wjpxxx/letgo/lib"
-	tiktokConfig "github.com/wjpxxx/tiktokgo/config"
-	shopentity "github.com/wjpxxx/tiktokgo/shop/entity"
+	"github.com/wjp-letgo/letgo/lib"
+	tiktokConfig "github.com/wjp-letgo/tiktok-go/config"
+	shopentity "github.com/wjp-letgo/tiktok-go/shop/entity"
 )
 
 //Shop

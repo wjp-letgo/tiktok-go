@@ -2,9 +2,9 @@ package oauth
 
 import (
 	"fmt"
-	"github.com/wjpxxx/letgo/lib"
-	tiktokConfig "github.com/wjpxxx/tiktokgo/config"
-	oauthentity "github.com/wjpxxx/tiktokgo/oauth/entity"
+	"github.com/wjp-letgo/letgo/lib"
+	tiktokConfig "github.com/wjp-letgo/tiktok-go/config"
+	oauthentity "github.com/wjp-letgo/tiktok-go/oauth/entity"
 )
 
 //OAuth
