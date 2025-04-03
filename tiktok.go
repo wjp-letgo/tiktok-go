@@ -43,7 +43,7 @@ type TikToker interface {
 	RecommendCategory(data *productentity.RecommendCategoryRequest)*productentity.RecommendCategoryResult
 
 	//订单相关接口
-	OrdersSearch(pageSize int,sortOrder,pageToken,sortField string,body *ordersentity.OrdersRequest)*ordersentity.OrdersResult
+	OrdersSearch(pageSize int,pageToken,sortOrder,sortField string,body *ordersentity.OrdersRequest)*ordersentity.OrdersResult
 	OrderDetail(ids []string)*ordersentity.OrderDetailResult
 	PriceDetail(orderId string)*ordersentity.PriceDetailResult
 	AddExternalOrder(body *ordersentity.AddExternalOrderRequest)*ordersentity.AddExternalOrderResult
