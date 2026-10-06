@@ -1,6 +1,8 @@
 package product
 
 import (
+	"fmt"
+
 	"github.com/wjp-letgo/letgo/lib"
 	tiktokConfig "github.com/wjp-letgo/tiktok-go/config"
 	productentity "github.com/wjp-letgo/tiktok-go/product/entity"
@@ -53,6 +55,88 @@ func (a *Product) Categories(locale,keyword,categoryVersion,listingPlatform stri
 func (a *Product)RecommendCategory(data *productentity.RecommendCategoryRequest)*productentity.RecommendCategoryResult{
 	var result productentity.RecommendCategoryResult
 	err := a.Config.HttpS3("/product/202309/categories/recommend",nil, data, &result)
+	if err != nil {
+		result.Code = -1
+		result.Message = err.Error()
+	}
+	return &result
+}
+
+// 获取指定类目的上架规则（认证、尺码表、COD 等）
+func (a *Product) CategoryRules(categoryId, locale, categoryVersion, listingPlatform string) *productentity.CategoryRulesResult {
+	var result productentity.CategoryRulesResult
+	params := lib.InRow{}
+	if locale != "" {
+		params["locale"] = locale
+	}
+	if categoryVersion != "" {
+		params["category_version"] = categoryVersion
+	}
+	if listingPlatform != "" {
+		params["listing_platform"] = listingPlatform
+	}
+	err := a.Config.GetS3(fmt.Sprintf("/product/202309/categories/%s/rules", categoryId), params, &result)
+	if err != nil {
+		result.Code = -1
+		result.Message = err.Error()
+	}
+	return &result
+}
+
+// 获取指定类目的属性列表
+func (a *Product) Attributes(categoryId, locale, categoryVersion, listingPlatform string) *productentity.AttributesResult {
+	var result productentity.AttributesResult
+	params := lib.InRow{}
+	if locale != "" {
+		params["locale"] = locale
+	}
+	if categoryVersion != "" {
+		params["category_version"] = categoryVersion
+	}
+	if listingPlatform != "" {
+		params["listing_platform"] = listingPlatform
+	}
+	err := a.Config.GetS3(fmt.Sprintf("/product/202309/categories/%s/attributes", categoryId), params, &result)
+	if err != nil {
+		result.Code = -1
+		result.Message = err.Error()
+	}
+	return &result
+}
+
+// 检索品牌列表
+func (a *Product) Brands(pageSize int, pageToken, categoryId, brandName, categoryVersion string, isAuthorized bool) *productentity.BrandsResult {
+	var result productentity.BrandsResult
+	params := lib.InRow{
+		"page_size": pageSize,
+	}
+	if pageToken != "" {
+		params["page_token"] = pageToken
+	}
+	if categoryId != "" {
+		params["category_id"] = categoryId
+	}
+	if brandName != "" {
+		params["brand_name"] = brandName
+	}
+	if categoryVersion != "" {
+		params["category_version"] = categoryVersion
+	}
+	if isAuthorized {
+		params["is_authorized"] = true
+	}
+	err := a.Config.GetS3("/product/202309/brands", params, &result)
+	if err != nil {
+		result.Code = -1
+		result.Message = err.Error()
+	}
+	return &result
+}
+
+// 创建自定义品牌
+func (a *Product) CreateBrand(body *productentity.CreateBrandRequest) *productentity.CreateBrandResult {
+	var result productentity.CreateBrandResult
+	err := a.Config.HttpS3("/product/202309/brands", nil, body, &result)
 	if err != nil {
 		result.Code = -1
 		result.Message = err.Error()

@@ -18,7 +18,7 @@ func (e *CategoryAssetsResult) String() string {
 
 // @json
 type CategoryAssetsData struct {
-	CategoryAssets Shops `json:"category_assets"`
+	CategoryAssets CategoryAssets `json:"category_assets"`
 }
 
 func (e *CategoryAssetsData) String() string {

@@ -169,3 +169,87 @@ func (a *Fulfillment)UpdateShippingInfo(orderId string,body *fulfillmententity.U
 	}
 	return &result
 }
+
+// 检索可合并包裹
+func (a *Fulfillment) SearchCombinablePackages(pageSize int, pageToken string) *fulfillmententity.SearchCombinablePackageResult {
+	var result fulfillmententity.SearchCombinablePackageResult
+	params := lib.InRow{
+		"page_size": pageSize,
+	}
+	if pageToken != "" {
+		params["page_token"] = pageToken
+	}
+	err := a.Config.GetS3("/fulfillment/202309/combinable_packages/search", params, &result)
+	if err != nil {
+		result.Code = -1
+		result.Message = err.Error()
+	}
+	return &result
+}
+
+// 合并包裹
+func (a *Fulfillment) CombinePackage(body *fulfillmententity.CombinePackageRequest) *fulfillmententity.CombinePackageResult {
+	var result fulfillmententity.CombinePackageResult
+	err := a.Config.HttpS3("/fulfillment/202309/packages/combine", nil, body, &result)
+	if err != nil {
+		result.Code = -1
+		result.Message = err.Error()
+	}
+	return &result
+}
+
+// 拆分已合并包裹
+func (a *Fulfillment) UncombinePackages(packageId string, body *fulfillmententity.UncombinePackagesRequest) *fulfillmententity.UncombinePackagesResult {
+	var result fulfillmententity.UncombinePackagesResult
+	err := a.Config.HttpS3(fmt.Sprintf("/fulfillment/202309/packages/%s/uncombine", packageId), nil, body, &result)
+	if err != nil {
+		result.Code = -1
+		result.Message = err.Error()
+	}
+	return &result
+}
+
+// 商家自发货标记包裹已发货（美/英/西/爱）
+func (a *Fulfillment) MarkPackageAsShipped(orderId string, body *fulfillmententity.MarkPackageAsShippedRequest) *fulfillmententity.MarkPackageAsShippedResult {
+	var result fulfillmententity.MarkPackageAsShippedResult
+	err := a.Config.HttpS3(fmt.Sprintf("/fulfillment/202309/orders/%s/packages", orderId), nil, body, &result)
+	if err != nil {
+		result.Code = -1
+		result.Message = err.Error()
+	}
+	return &result
+}
+
+// 查询订单物流轨迹
+func (a *Fulfillment) GetTracking(orderId string) *fulfillmententity.TrackingResult {
+	var result fulfillmententity.TrackingResult
+	params := lib.InRow{}
+	err := a.Config.GetS3(fmt.Sprintf("/fulfillment/202309/orders/%s/tracking", orderId), params, &result)
+	if err != nil {
+		result.Code = -1
+		result.Message = err.Error()
+	}
+	return &result
+}
+
+// 更新包裹物流信息
+func (a *Fulfillment) UpdatePackageShippingInfo(packageId string, body *fulfillmententity.UpdatePackageShippingInfoRequest) *fulfillmententity.UpdatePackageShippingInfoResult {
+	var result fulfillmententity.UpdatePackageShippingInfoResult
+	err := a.Config.HttpS3(fmt.Sprintf("/fulfillment/202309/packages/%s/shipping_info/update", packageId), nil, body, &result)
+	if err != nil {
+		result.Code = -1
+		result.Message = err.Error()
+	}
+	return &result
+}
+
+// 批量更新包裹妥投状态
+func (a *Fulfillment) UpdatePackageDeliveryStatus(body *fulfillmententity.UpdatePackageDeliveryStatusRequest) *fulfillmententity.UpdatePackageDeliveryStatusResult {
+	var result fulfillmententity.UpdatePackageDeliveryStatusResult
+	err := a.Config.HttpS3("/fulfillment/202309/packages/deliver", nil, body, &result)
+	if err != nil {
+		result.Code = -1
+		result.Message = err.Error()
+	}
+	return &result
+}

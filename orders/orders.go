@@ -83,3 +83,33 @@ func (a *Orders) AddExternalOrder(body *ordersentity.AddExternalOrderRequest) *o
 	}
 	return &result
 }
+
+// 获取订单关联的外部平台订单号
+func (a *Orders) ExternalOrders(orderId, platform string) *ordersentity.ExternalOrdersResult {
+	var result ordersentity.ExternalOrdersResult
+	params := lib.InRow{}
+	if platform != "" {
+		params["platform"] = platform
+	}
+	err := a.Config.GetS3(fmt.Sprintf("/order/202406/orders/%s/external_orders", orderId), params, &result)
+	if err != nil {
+		result.Code = -1
+		result.Message = err.Error()
+	}
+	return &result
+}
+
+// 通过外部平台订单号反查 TikTok 订单
+func (a *Orders) SearchExternalOrder(platform, externalOrderId string) *ordersentity.SearchExternalOrderResult {
+	var result ordersentity.SearchExternalOrderResult
+	params := lib.InRow{
+		"platform":          platform,
+		"external_order_id": externalOrderId,
+	}
+	err := a.Config.HttpS3("/order/202406/orders/external_order_search", params, nil, &result)
+	if err != nil {
+		result.Code = -1
+		result.Message = err.Error()
+	}
+	return &result
+}

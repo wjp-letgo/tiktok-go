@@ -1,13 +1,19 @@
 package config
 
 import (
+	"bytes"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"io/ioutil"
+	"net/http"
+	"sort"
+	"strings"
+	"time"
+
 	"github.com/wjp-letgo/letgo/encry"
 	"github.com/wjp-letgo/letgo/httpclient"
 	"github.com/wjp-letgo/letgo/lib"
-	"sort"
-	"strings"
 )
 
 // Config
@@ -198,6 +204,114 @@ func (c *Config) HttpS2(method string, data interface{}, out interface{}) error 
 		}
 	*/
 	lib.StringToObject(result.Body(), out)
+	return nil
+}
+
+// PutS3 PUT JSON，带 shop_cipher
+func (c *Config) PutS3(method string, query lib.InRow, data interface{}, out interface{}) error {
+	return c.jsonS3("PUT", true, method, query, data, out)
+}
+
+// DeleteS3 DELETE JSON，带 shop_cipher
+func (c *Config) DeleteS3(method string, query lib.InRow, data interface{}, out interface{}) error {
+	return c.jsonS3("DELETE", true, method, query, data, out)
+}
+
+// PutS4 PUT JSON，不带 shop_cipher
+func (c *Config) PutS4(method string, query lib.InRow, data interface{}, out interface{}) error {
+	return c.jsonS3("PUT", false, method, query, data, out)
+}
+
+// DeleteS4 DELETE JSON，不带 shop_cipher
+func (c *Config) DeleteS4(method string, query lib.InRow, data interface{}, out interface{}) error {
+	return c.jsonS3("DELETE", false, method, query, data, out)
+}
+
+// MultipartS4 文件上传，不带 shop_cipher；values 中 @ 开头的键为文件字段
+func (c *Config) MultipartS3(method string, query, values lib.InRow, out interface{}) error {
+	param := lib.InRow{
+		"app_key":     c.AppKey,
+		"timestamp":   lib.Time(),
+		"shop_cipher": c.ShopCipher,
+	}
+	if query == nil {
+		query = lib.InRow{}
+	}
+	allParam := lib.MergeInRow(param, query)
+	allParam["sign"] = Sign(c.AppSecret, method, allParam, "")
+	fullURL := fmt.Sprintf("%s%s?%s", c.BaseURL, method, httpclient.HttpBuildQuery(allParam))
+	ihttp := httpclient.New().WithTimeOut(120).WithHeader("x-tts-access-token", c.AccessToken)
+	result := ihttp.PostMultipart(fullURL, values)
+	if result.Err != "" {
+		return errors.New(result.Err)
+	}
+	lib.StringToObject(result.Body(), out)
+	return nil
+}
+
+func (c *Config) MultipartS4(method string, query, values lib.InRow, out interface{}) error {
+	param := lib.InRow{
+		"app_key":   c.AppKey,
+		"timestamp": lib.Time(),
+	}
+	if query == nil {
+		query = lib.InRow{}
+	}
+	allParam := lib.MergeInRow(param, query)
+	allParam["sign"] = Sign(c.AppSecret, method, allParam, "")
+	fullURL := fmt.Sprintf("%s%s?%s", c.BaseURL, method, httpclient.HttpBuildQuery(allParam))
+	ihttp := httpclient.New().WithTimeOut(120).WithHeader("x-tts-access-token", c.AccessToken)
+	result := ihttp.PostMultipart(fullURL, values)
+	if result.Err != "" {
+		return errors.New(result.Err)
+	}
+	lib.StringToObject(result.Body(), out)
+	return nil
+}
+
+func (c *Config) jsonS3(httpMethod string, withShopCipher bool, method string, query lib.InRow, data interface{}, out interface{}) error {
+	param := lib.InRow{
+		"app_key":   c.AppKey,
+		"timestamp": lib.Time(),
+	}
+	if withShopCipher {
+		param["shop_cipher"] = c.ShopCipher
+	}
+	if query == nil {
+		query = lib.InRow{}
+	}
+	allParam := lib.MergeInRow(param, query)
+	body := ""
+	var bodyBytes []byte
+	if data != nil {
+		body = fmt.Sprintf("%s", data)
+		if body == "" {
+			b, err := json.Marshal(data)
+			if err == nil {
+				body = string(b)
+			}
+		}
+		bodyBytes = []byte(body)
+	}
+	allParam["sign"] = Sign(c.AppSecret, method, allParam, body)
+	fullURL := fmt.Sprintf("%s%s?%s", c.BaseURL, method, httpclient.HttpBuildQuery(allParam))
+	req, err := http.NewRequest(httpMethod, fullURL, bytes.NewReader(bodyBytes))
+	if err != nil {
+		return err
+	}
+	req.Header.Set("x-tts-access-token", c.AccessToken)
+	req.Header.Set("content-type", "application/json")
+	client := &http.Client{Timeout: 120 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+	b, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+		return err
+	}
+	lib.StringToObject(string(b), out)
 	return nil
 }
 
